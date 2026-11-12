@@ -1,0 +1,41 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    vue:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 12
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm test
+            - run: pnpm typecheck
+
+    laravel:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/laravel
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.3'
+                  coverage: none
+
+            - run: composer install --no-interaction --prefer-dist
+            - run: composer test

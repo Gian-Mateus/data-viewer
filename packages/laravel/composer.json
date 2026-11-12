@@ -1,0 +1,46 @@
+{
+    "name": "manadah/data-viewer",
+    "description": "Contrato Laravel (TableQuery) para o DataViewer: colunas, filtros, ordenação, busca e configuração serializável para o frontend.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "table",
+        "dataviewer",
+        "query-builder",
+        "spatie"
+    ],
+    "homepage": "https://github.com/manadah/data-viewer",
+    "support": {
+        "source": "https://github.com/manadah/data-viewer/tree/main/packages/laravel"
+    },
+    "require": {
+        "php": "^8.3",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/http": "^13.0",
+        "illuminate/support": "^13.0",
+        "spatie/laravel-query-builder": "^7.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Manadah\\DataViewer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Manadah\\DataViewer\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
