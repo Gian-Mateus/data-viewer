@@ -1,12 +1,31 @@
 # manadah/data-viewer (Laravel)
 
-Contrato PHP do DataViewer: classes fluentes para colunas e filtros, mais a classe abstrata `TableQuery` que gera a configuração serializada para o `<DataViewer>` do frontend.
+Contrato PHP do DataViewer + fonte Vue, em um único pacote Composer.
+
+- **PHP:** `TableQuery`, `TableQueryInterface`, `Column`, `Filter` — construídos sobre `spatie/laravel-query-builder` (obrigatório).
+- **Vue:** componentes `.vue` + `.ts`, publicados no projeto via `vendor:publish`.
 
 ```bash
 composer require manadah/data-viewer
+php artisan vendor:publish --tag=data-viewer-vue
 ```
 
 Distribuído via subtree split em `github.com/manadah/data-viewer-php`.
+
+## O que é publicado
+
+`resources/js/components/data-viewer/` no projeto consumidor, contendo o DataViewer, as células, os filtros, os providers e os composables.
+
+O pacote **não** inclui os primitivos shadcn: ele importa `@/components/ui/*` e `@/lib/utils` do projeto. Requer:
+
+```
+avatar badge button card checkbox dialog dropdown-menu input input-group
+label pagination popover range-calendar select separator switch table textarea tooltip
+```
+
+```bash
+npx shadcn-vue@latest add avatar badge button card checkbox dialog dropdown-menu input input-group label pagination popover range-calendar select separator switch table textarea tooltip
+```
 
 ## TableQuery
 
@@ -95,6 +114,8 @@ public function index(Request $request): InertiaResponse
 
 `config()` devolve `rowKey`, `columns`, `filters`, `searchable`, `storageKey` e `filterDisplay` no formato consumido por `DataViewerConfig` no Vue.
 
+**Seleção não faz parte do contrato.** Quem habilita é a página Vue, fornecendo o slot `#bulk-actions`. O backend só precisa de um `rowKey()` estável.
+
 ## Classes
 
 | Classe | Descrição |
@@ -103,3 +124,20 @@ public function index(Request $request): InertiaResponse
 | `TableQueryInterface` | Contrato implementado por `TableQuery` |
 | `Column` | `make()`, `sortable()`, `hideable()`, `hidden()`, `toArray()`, `jsonSerialize()` |
 | `Filter` | `select()`, `checkbox()`, `radio()`, `toggle()`, `dateRange()`, `options()`, `multiple()` |
+| `DataViewerServiceProvider` | Registra a publicação `data-viewer-vue` |
+
+## Requisitos
+
+- PHP 8.3+
+- Laravel 13 (`illuminate/*` 13)
+- `spatie/laravel-query-builder` 7.3+
+- No frontend: Vue 3.5+, Tailwind 4, shadcn-vue
+
+## Atualização
+
+```bash
+composer update manadah/data-viewer
+php artisan vendor:publish --tag=data-viewer-vue --force
+```
+
+`--force` sobrescreve o que foi publicado; revise o diff por causa de customizações locais.

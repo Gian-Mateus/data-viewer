@@ -1,129 +1,31 @@
 # manadah/data-viewer
 
-DataViewer para **Vue 3 + Inertia/Laravel**: componente de listagem em **tabela** ou **grid** com busca, filtros, ordenação, seleção/ações em massa e paginação, mais o **contrato PHP** que gera a configuração do frontend.
+DataViewer para **Laravel + Vue 3 + Inertia**: listagem em tabela ou grid com busca, filtros, ordenação, seleção/ações em massa e paginação.
 
-Originado do projeto `akademos-saas` (branch `refact-inertia`) e extraído como pacote reutilizável.
+É **um único pacote Composer**. Ele entrega:
+
+- o contrato PHP (`TableQuery`, `Column`, `Filter`) construído sobre o `spatie/laravel-query-builder`;
+- o código-fonte Vue (`.vue` + `.ts`), publicado no projeto com `vendor:publish`.
+
+Não existe pacote npm nem `node_modules/@manadah/data-viewer`. Os arquivos Vue passam a pertencer ao projeto e podem ser editados livremente.
 
 ## Estrutura
 
 ```
 manadah-data-viewer/
-├── packages/
-│   ├── vue/        # @manadah/data-viewer  (npm, código-fonte SFC + TS)
-│   └── laravel/    # manadah/data-viewer   (Composer, contrato TableQuery)
+├── packages/laravel/
+│   ├── src/                       # contrato PHP + DataViewerServiceProvider
+│   ├── resources/js/data-viewer/  # fonte Vue publicada no projeto
+│   └── tests/                     # PHPUnit + Vitest
+├── dev/                           # shadcn de desenvolvimento (não publicado)
 └── .github/workflows/
-    ├── ci.yml              # testes dos dois pacotes
-    ├── publish-npm.yml     # publica no GitHub Packages (tags vue-v*)
-    └── split-laravel.yml   # subtree split de packages/laravel
+    ├── ci.yml
+    └── split-laravel.yml          # subtree split para manadah/data-viewer-php
 ```
 
-## Instalação no frontend
+## Instalação
 
-```bash
-npm install @manadah/data-viewer
-```
-
-Com GitHub Packages, configure o `.npmrc` do projeto:
-
-```ini
-@manadah:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GH_TOKEN}
-```
-
-### Vite
-
-O pacote é distribuído como código-fonte (`.vue`/`.ts`), então o Vite precisa transpilá-lo:
-
-```ts
-// vite.config.ts
-export default defineConfig({
-    optimizeDeps: {
-        exclude: ['@manadah/data-viewer'],
-    },
-});
-```
-
-### Tailwind
-
-Garanta que o Tailwind escaneie as classes do pacote (em `resources/css/app.css`):
-
-```css
-@source '../../node_modules/@manadah/data-viewer/src';
-```
-
-As classes usam as variáveis de tema padrão do shadcn/Tailwind v4 (`border`, `primary`, `muted-foreground` etc.), então o pacote já herda a identidade visual do projeto.
-
-## Uso
-
-```vue
-<script setup lang="ts">
-import { DataViewer } from '@manadah/data-viewer';
-import type { DataViewerConfig, Paginated } from '@manadah/data-viewer';
-
-defineProps<{ config: DataViewerConfig; data: Paginated<Curso> }>();
-</script>
-
-<template>
-    <DataViewer :config="config" :data="data">
-        <template #nome="{ value }">{{ value }}</template>
-        <template #bulk-actions="{ count, payload }">
-            <button @click="excluir(payload)">Excluir {{ count }}</button>
-        </template>
-    </DataViewer>
-</template>
-```
-
-Com Inertia (provider nativo, mantém o Inertia opcional para quem não usa):
-
-```ts
-// app.ts
-import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
-import { DataViewerPlugin, createInertiaProvider } from '@manadah/data-viewer/inertia';
-
-void createInertiaApp({
-    title: (t) => (t ? `${t} - App` : 'App'),
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(DataViewerPlugin, { provider: createInertiaProvider({ mode: 'page' }) })
-            .mount(el);
-    },
-});
-```
-
-Sem Inertia, o `<DataViewer>` já usa o provider `fetch` por padrão e espera um endpoint JSON com o paginador do Laravel.
-
-## Textos
-
-Todos os rótulos (PT-BR por padrão) podem ser sobrescritos globalmente no plugin ou por instância:
-
-```ts
-app.use(DataViewerPlugin, { labels: { table: 'Lista', loadMore: 'Ver mais' } });
-```
-
-```vue
-<DataViewer :config="config" :data="data" :labels="{ cards: 'Cartões' }" />
-```
-
-## Consumindo localmente (antes de publicar)
-
-Enquanto o pacote não estiver no GitHub Packages, gere o tarball e instale no projeto consumidor:
-
-```bash
-cd packages/vue && npm pack
-# no projeto consumidor
-npm install ../manadah-data-viewer/packages/vue/manadah-data-viewer-0.1.0.tgz
-```
-
-> Prefira o tarball a `file:` com o diretório do pacote. O `file:` cria um symlink e o TypeScript passa a resolver
-> uma segunda cópia do Vue dentro do monorepo, gerando erros de tipos incompatíveis (`App`, `ComponentPublicInstance`).
-
-Depois de publicar, troque a dependência por `"@manadah/data-viewer": "^0.1.0"`.
-
-## Instalação do pacote PHP
-
-O `packages/laravel` é publicado por **subtree split** no repositório `manadah/data-viewer-php`. Nos projetos:
+Enquanto o pacote não estiver no Packagist, use um repositório VCS:
 
 ```json
 {
@@ -136,15 +38,104 @@ O `packages/laravel` é publicado por **subtree split** no repositório `manadah
 }
 ```
 
+```bash
+composer update manadah/data-viewer
+php artisan vendor:publish --tag=data-viewer-vue
+```
+
+Os arquivos são copiados para `resources/js/components/data-viewer/`. A partir daí são código do projeto: edite, mova ou renomeie como quiser.
+
+## Primitivos shadcn
+
+O DataViewer usa os componentes do próprio projeto (`@/components/ui/*` e `@/lib/utils`). Ele precisa destes primitivos:
+
+```
+avatar badge button card checkbox dialog dropdown-menu input input-group
+label pagination popover range-calendar select separator switch table textarea tooltip
+```
+
+Se faltar algum:
+
+```bash
+npx shadcn-vue@latest add avatar badge button card checkbox dialog dropdown-menu input input-group label pagination popover range-calendar select separator switch table textarea tooltip
+```
+
+O pacote assume os aliases padrão do shadcn-vue (`@/components/ui` e `@/lib/utils`). Se o projeto usar outros, ajuste os imports após publicar.
+
+## Uso
+
+```vue
+<script setup lang="ts">
+import { DataViewer } from '@/components/data-viewer';
+import type { DataViewerConfig, Paginated } from '@/components/data-viewer';
+
+defineProps<{ config: DataViewerConfig; data: Paginated<Curso> }>();
+</script>
+
+<template>
+    <DataViewer :config="config" :data="data">
+        <template #nome="{ value }">{{ value }}</template>
+
+        <template #bulk-actions="{ count, payload, clear }">
+            <button @click="excluir(payload)">Excluir {{ count }}</button>
+            <button @click="clear">Limpar</button>
+        </template>
+    </DataViewer>
+</template>
+```
+
+A seleção existe **apenas quando o slot `#bulk-actions` é fornecido**. Sem o slot, nenhum checkbox é renderizado.
+
+## Inertia
+
+```ts
+// resources/js/app.ts
+import { createApp, h } from 'vue';
+import { createInertiaApp } from '@inertiajs/vue3';
+import { DataViewerPlugin, createInertiaProvider } from '@/components/data-viewer/inertia';
+
+void createInertiaApp({
+    setup({ el, App, props, plugin }) {
+        createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(DataViewerPlugin, { provider: createInertiaProvider() })
+            .mount(el!);
+    },
+});
+```
+
+Sem Inertia, o componente usa o provider `fetch` por padrão.
+
+## Contrato PHP
+
 ```php
-use Manadah\DataViewer\TableQuery;
+<?php
+
+declare(strict_types=1);
+
+namespace Domain\Course\Queries;
+
+use Domain\Course\Models\Course;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
 use Manadah\DataViewer\Column;
 use Manadah\DataViewer\Filter;
+use Manadah\DataViewer\TableQuery;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CourseTableQuery extends TableQuery
 {
-    public function rowKey(): string { return 'ulid'; }
-    public function searchableColumns(): array { return ['name', 'description']; }
+    public function rowKey(): string
+    {
+        return 'ulid';
+    }
+
+    public function searchableColumns(): array
+    {
+        return ['name'];
+    }
 
     public function columns(): array
     {
@@ -169,10 +160,28 @@ class CourseTableQuery extends TableQuery
 }
 ```
 
+No controller:
+
+```php
+return Inertia::render('gestor/courses/Index', [
+    'courses' => $query->query(request: $request)->paginate(perPage: $request->integer('per_page', 15)),
+    'config' => $query->config(),
+]);
+```
+
+## Atualização
+
+```bash
+composer update manadah/data-viewer
+php artisan vendor:publish --tag=data-viewer-vue --force
+```
+
+`--force` sobrescreve os arquivos publicados. Revise o diff antes de commitar, porque o projeto pode ter customizações.
+
 ## Desenvolvimento
 
 ```bash
-# frontend
+# frontend (Vitest + vue-tsc)
 pnpm install
 pnpm test
 pnpm typecheck
@@ -181,7 +190,8 @@ pnpm typecheck
 cd packages/laravel && composer install && composer test
 ```
 
+A pasta `dev/` contém uma cópia dos primitivos shadcn usada só para typecheck e testes do pacote. Ela não é publicada.
+
 ## Publicação
 
-- **npm**: `pnpm --filter @manadah/data-viewer version <bump>`, ajuste `packages/vue/package.json` e crie a tag `vue-v0.1.0` (o workflow publica no GitHub Packages).
-- **Composer**: o split de `packages/laravel` acontece automaticamente ao publicar na `main`.
+O workflow `split-laravel.yml` faz o subtree split de `packages/laravel` para `manadah/data-viewer-php`, que é o repositório consumido pelo Composer.

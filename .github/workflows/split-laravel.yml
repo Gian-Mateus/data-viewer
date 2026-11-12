@@ -3,7 +3,7 @@ name: Split Laravel package
 on:
     push:
         branches: [main]
-        tags-ignore: ['vue-v*']
+        tags: ['v*']
     workflow_dispatch:
 
 jobs:
