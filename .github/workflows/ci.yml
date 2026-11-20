@@ -2,7 +2,7 @@ name: CI
 
 on:
     push:
-        branches: [main]
+        branches: [main, master]
     pull_request:
 
 jobs:
@@ -26,9 +26,6 @@ jobs:
 
     laravel:
         runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: packages/laravel
         steps:
             - uses: actions/checkout@v4
 

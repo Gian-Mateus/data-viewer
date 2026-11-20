@@ -19,5 +19,7 @@ export * from './config';
 export * from './providers/types';
 export { createFetchProvider, fetchProvider } from './providers/fetch';
 export type { FetchProviderOptions } from './providers/fetch';
+export { createInertiaProvider } from './providers/inertia';
+export type { InertiaProviderOptions } from './providers/inertia';
 
 export type { DataViewerProvider } from './providers/types';

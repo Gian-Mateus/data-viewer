@@ -37,3 +37,4 @@ export {
     default as TableProgressCell,
     type TableProgressCellProps,
 } from "./TableProgressCell.vue";
+export { default as ExpandContent } from "./ExpandContent.vue";

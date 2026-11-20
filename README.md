@@ -12,35 +12,29 @@ Não existe pacote npm nem `node_modules/@manadah/data-viewer`. Os arquivos Vue 
 ## Estrutura
 
 ```
-manadah-data-viewer/
-├── packages/laravel/
-│   ├── src/                       # contrato PHP + DataViewerServiceProvider
-│   ├── resources/js/data-viewer/  # fonte Vue publicada no projeto
-│   └── tests/                     # PHPUnit + Vitest
-├── dev/                           # shadcn de desenvolvimento (não publicado)
-└── .github/workflows/
-    ├── ci.yml
-    └── split-laravel.yml          # subtree split para manadah/data-viewer-php
+data-viewer/
+├── src/                       # contrato PHP + DataViewerServiceProvider
+├── resources/js/data-viewer/  # fonte Vue publicada no projeto
+├── tests/                     # PHPUnit + Vitest
+├── dev/                       # shadcn de desenvolvimento (não publicado)
+└── .github/workflows/ci.yml
 ```
 
 ## Instalação
 
-Enquanto o pacote não estiver no Packagist, use um repositório VCS:
+```bash
+composer require manadah/data-viewer
+php artisan vendor:publish --tag=data-viewer-vue
+```
+
+Enquanto o pacote não estiver no Packagist, adicione o repositório VCS no `composer.json` do projeto:
 
 ```json
 {
     "repositories": [
-        { "type": "vcs", "url": "git@github.com:manadah/data-viewer-php.git" }
-    ],
-    "require": {
-        "manadah/data-viewer": "^0.1"
-    }
+        { "type": "vcs", "url": "git@github.com:Gian-Mateus/data-viewer.git" }
+    ]
 }
-```
-
-```bash
-composer update manadah/data-viewer
-php artisan vendor:publish --tag=data-viewer-vue
 ```
 
 Os arquivos são copiados para `resources/js/components/data-viewer/`. A partir daí são código do projeto: edite, mova ou renomeie como quiser.
@@ -86,25 +80,11 @@ defineProps<{ config: DataViewerConfig; data: Paginated<Curso> }>();
 
 A seleção existe **apenas quando o slot `#bulk-actions` é fornecido**. Sem o slot, nenhum checkbox é renderizado.
 
-## Inertia
+## Configuração e Provider
 
-```ts
-// resources/js/app.ts
-import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
-import { DataViewerPlugin, createInertiaProvider } from '@/components/data-viewer/inertia';
+Por padrão, o `DataViewer` já vem configurado para **Inertia** em `resources/js/components/data-viewer/config.ts` (`defaultConfig`). Não é necessário registrar nenhum plugin no `app.ts`.
 
-void createInertiaApp({
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(DataViewerPlugin, { provider: createInertiaProvider() })
-            .mount(el!);
-    },
-});
-```
-
-Sem Inertia, o componente usa o provider `fetch` por padrão.
+Para alterar o provider padrão (ex.: usar `fetchProvider` sem Inertia), `locale`, `labels` ou `perPageOptions`, edite diretamente o `defaultConfig` em `resources/js/components/data-viewer/config.ts`.
 
 ## Contrato PHP
 
@@ -187,11 +167,8 @@ pnpm test
 pnpm typecheck
 
 # backend
-cd packages/laravel && composer install && composer test
+composer install
+composer test
 ```
 
-A pasta `dev/` contém uma cópia dos primitivos shadcn usada só para typecheck e testes do pacote. Ela não é publicada.
-
-## Publicação
-
-O workflow `split-laravel.yml` faz o subtree split de `packages/laravel` para `manadah/data-viewer-php`, que é o repositório consumido pelo Composer.
+A pasta `dev/` contém uma cópia dos primitivos shadcn usada só para typecheck e testes do pacote. Ela é ignorada na distribuição via `.gitattributes`.

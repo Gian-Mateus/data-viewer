@@ -10,9 +10,9 @@
         "query-builder",
         "spatie"
     ],
-    "homepage": "https://github.com/manadah/data-viewer",
+    "homepage": "https://github.com/Gian-Mateus/data-viewer",
     "support": {
-        "source": "https://github.com/manadah/data-viewer/tree/main/packages/laravel"
+        "source": "https://github.com/Gian-Mateus/data-viewer"
     },
     "require": {
         "php": "^8.3",

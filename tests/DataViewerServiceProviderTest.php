@@ -15,7 +15,7 @@ final class DataViewerServiceProviderTest extends TestCase
 
         $this->assertFileExists($dir.'/DataViewer.vue');
         $this->assertFileExists($dir.'/index.ts');
-        $this->assertFileExists($dir.'/inertia.ts');
+        $this->assertFileExists($dir.'/config.ts');
         $this->assertDirectoryDoesNotExist($dir.'/ui');
     }
 

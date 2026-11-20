@@ -6,7 +6,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "typecheck": "vue-tsc --noEmit",
-        "test:php": "cd packages/laravel && composer test"
+        "test:php": "composer test"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^3.0.0",

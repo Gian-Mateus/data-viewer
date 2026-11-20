@@ -10,8 +10,8 @@ import DataViewerTable from './DataViewerTable.vue';
 import DataViewerToolbar from './DataViewerToolbar.vue';
 import {
     DATA_VIEWER_CONTEXT,
+    defaultConfig,
     mergeLabels,
-    useGlobalConfig,
 } from './config';
 import type { DataViewerLabels } from './config';
 import { clone, parseQuery } from './query';
@@ -29,11 +29,11 @@ const props = withDefaults(
         storageKey?: string;
         defaultViewMode?: ViewMode;
         only?: string[];
-        /** Provider de dados. Padrão: o configurado no plugin ou `fetch`. */
+        /** Provider de dados. Padrão: `defaultConfig.provider` (Inertia). */
         provider?: DataViewerProvider<T>;
         /** Sobrescreve a navegação ao clicar em uma linha/card. */
         navigate?: NavigateFn;
-        /** Textos da interface. Mesclado com o padrão PT-BR e o configurado no plugin. */
+        /** Textos da interface. Mesclado com `defaultConfig.labels`. */
         labels?: Partial<DataViewerLabels>;
     }>(),
     {
@@ -47,22 +47,20 @@ const props = withDefaults(
     },
 );
 
-const global = useGlobalConfig();
-
-const resolvedLabels = mergeLabels(global.labels, props.labels);
+const resolvedLabels = mergeLabels(defaultConfig.labels, props.labels);
 const resolvedStorageKey = computed(
-    () => props.config.storageKey ?? props.storageKey ?? global.storageKey ?? 'data-viewer',
+    () => props.config.storageKey ?? props.storageKey ?? defaultConfig.storageKey,
 );
-const resolvedViewMode = computed(() => props.defaultViewMode ?? global.defaultViewMode ?? 'table');
+const resolvedViewMode = computed(() => props.defaultViewMode ?? defaultConfig.defaultViewMode);
 const resolvedPerPageOptions = computed(
-    () => props.config.perPageOptions ?? global.perPageOptions ?? [15, 30, 50, 100],
+    () => props.config.perPageOptions ?? defaultConfig.perPageOptions,
 );
+const resolvedProvider = (props.provider ?? defaultConfig.provider) as DataViewerProvider<T>;
 
 provide(DATA_VIEWER_CONTEXT, {
-    ...global,
-    provider: props.provider ?? global.provider,
+    provider: resolvedProvider,
     labels: resolvedLabels,
-    locale: global.locale ?? 'pt-BR',
+    locale: defaultConfig.locale,
 });
 
 const requestUrl =
@@ -77,7 +75,7 @@ const viewer = useDataViewer<T>({
     source: () => props.data,
     initialQuery,
     only: props.only,
-    provider: props.provider ?? global.provider,
+    provider: resolvedProvider,
     navigate: props.navigate,
 });
 

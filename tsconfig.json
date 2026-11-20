@@ -18,9 +18,9 @@
         }
     },
     "include": [
-        "packages/laravel/resources/js/data-viewer/**/*.ts",
-        "packages/laravel/resources/js/data-viewer/**/*.vue",
-        "packages/laravel/tests/vue/**/*.ts",
+        "resources/js/data-viewer/**/*.ts",
+        "resources/js/data-viewer/**/*.vue",
+        "tests/vue/**/*.ts",
         "dev/**/*.ts",
         "dev/**/*.vue"
     ]

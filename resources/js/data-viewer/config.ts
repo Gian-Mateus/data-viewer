@@ -1,11 +1,12 @@
 import { getCurrentInstance, inject } from 'vue';
-import type { App, InjectionKey, Plugin } from 'vue';
+import type { InjectionKey } from 'vue';
+import { createInertiaProvider } from './providers/inertia';
 import type { DataViewerProvider } from './providers/types';
 import type { ViewMode } from './types';
 
 /**
- * Textos da interface. Todos podem ser sobrescritos via prop `labels` do
- * `<DataViewer>` ou globalmente ao instalar o plugin.
+ * Textos da interface. Podem ser editados diretamente aqui (padrão global)
+ * ou sobrescritos via prop `labels` do `<DataViewer>`.
  */
 export interface DataViewerLabels {
     table: string;
@@ -79,26 +80,34 @@ export const defaultLabels: DataViewerLabels = {
     allOption: 'Todos',
 };
 
-/** Configuração global opcional, registrada com `app.use(DataViewerPlugin, ...)`. */
-export interface DataViewerGlobalConfig {
-    provider?: DataViewerProvider;
-    labels?: Partial<DataViewerLabels>;
-    locale?: string;
+/** Configuração padrão aplicada a todos os `<DataViewer>`. Edite conforme o projeto. */
+export interface DataViewerDefaults {
+    provider: DataViewerProvider;
+    labels: DataViewerLabels;
+    locale: string;
+    storageKey: string;
+    defaultViewMode: ViewMode;
+    perPageOptions: number[];
+}
+
+export const defaultConfig: DataViewerDefaults = {
+    provider: createInertiaProvider(),
+    labels: defaultLabels,
+    locale: 'pt-BR',
+    storageKey: 'data-viewer',
+    defaultViewMode: 'table',
+    perPageOptions: [15, 30, 50, 100],
+};
+
+/** Contexto resolvido no `<DataViewer>` e repassado aos componentes internos. */
+export interface DataViewerContext {
+    provider: DataViewerProvider;
+    labels: DataViewerLabels;
+    locale: string;
     storageKey?: string;
-    url?: string;
     defaultViewMode?: ViewMode;
     perPageOptions?: number[];
 }
-
-/** Contexto resolvido no `<DataViewer>` e repassado aos componentes internos. */
-export interface DataViewerContext extends DataViewerGlobalConfig {
-    labels: DataViewerLabels;
-    locale: string;
-}
-
-export const DATA_VIEWER_GLOBAL: InjectionKey<DataViewerGlobalConfig> = Symbol.for(
-    'manadah:data-viewer:global',
-);
 
 export const DATA_VIEWER_CONTEXT: InjectionKey<DataViewerContext> = Symbol.for(
     'manadah:data-viewer:context',
@@ -114,34 +123,17 @@ function safeInject<T>(key: InjectionKey<T>): T | undefined {
     return getCurrentInstance() ? inject(key) : undefined;
 }
 
-export function useGlobalConfig(): DataViewerGlobalConfig {
-    return safeInject(DATA_VIEWER_GLOBAL) ?? {};
-}
-
 export function useDataViewerContext(): DataViewerContext {
-    const ctx = safeInject(DATA_VIEWER_CONTEXT);
-
-    if (ctx) {
-        return ctx;
-    }
-
-    const global = useGlobalConfig();
-
-    return {
-        ...global,
-        labels: mergeLabels(global.labels),
-        locale: global.locale ?? 'pt-BR',
-    };
+    return (
+        safeInject(DATA_VIEWER_CONTEXT) ?? {
+            provider: defaultConfig.provider,
+            labels: defaultConfig.labels,
+            locale: defaultConfig.locale,
+        }
+    );
 }
 
 /** Atalho para uso nos componentes internos. */
 export function useLabels(): DataViewerLabels {
     return useDataViewerContext().labels;
 }
-
-export function DataViewerPlugin(app: App, options: DataViewerGlobalConfig = {}): void {
-    app.provide(DATA_VIEWER_GLOBAL, options);
-}
-
-// Tipa a função como plugin do Vue (inclui o segundo argumento opcional no `app.use`).
-export const dataViewerPlugin: Plugin<[options?: DataViewerGlobalConfig]> = DataViewerPlugin;

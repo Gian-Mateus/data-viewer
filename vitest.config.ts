@@ -14,6 +14,6 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         globals: true,
-        include: ['packages/laravel/tests/vue/**/*.spec.ts'],
+        include: ['tests/vue/**/*.spec.ts'],
     },
 });
